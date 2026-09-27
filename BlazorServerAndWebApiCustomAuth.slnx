@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BlazorServerApp/BlazorServerApp.csproj" />
+  <Project Path="WebAPI/WebAPI.csproj" />
+</Solution>
