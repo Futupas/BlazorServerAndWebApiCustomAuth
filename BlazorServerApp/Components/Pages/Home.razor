@@ -1,7 +1,27 @@
 ﻿@page "/"
+@using BlazorServerApp.Auth
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+
+<h2>Authorized part:</h2>
+
+<AuthorizedPart>
+    <Authorized Context="user">
+        <p>You are authorized. Your name is @user.Identity?.Name</p>
+    </Authorized>
+
+    <NotAuthorized>
+        <p>You are not authorized.</p>
+    </NotAuthorized>
+</AuthorizedPart>
+
+<AuthorizedPart Roles="Admin, SuperAdmin">
+    <Authorized Context="user">
+        <p>this section is for admins and super admins only. Simple users dont see it.</p>
+    </Authorized>
+</AuthorizedPart>

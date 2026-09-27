@@ -1,3 +1,4 @@
+using BlazorServerApp.Auth;
 using BlazorServerApp.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,10 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<UserService.UserService>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<CustomAuthStateProvider>();
 
 var app = builder.Build();
 

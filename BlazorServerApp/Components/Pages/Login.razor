@@ -1,0 +1,75 @@
+@page "/login"
+@using BlazorServerApp.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject CustomAuthStateProvider AuthenticationStateProvider
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
+        <div class="card-body">
+            <h3 class="text-center mb-4">Login To App</h3>
+            
+            @if (!string.IsNullOrEmpty(ErrorText))
+            {
+                <p style="color: red;">@ErrorText</p>
+            }
+            
+            @* Form is very important. Otherwise Blazor does not want to really refresh page -> change cookies *@
+            <form action="@("/login?returnUrl=" + Uri.EscapeDataString(ReturnUrl ?? string.Empty))" method="post" @formname="form1">
+                <AntiforgeryToken />
+                <input type="text" name="@nameof(Username)" placeholder="username" />
+                <input type="password" name="@nameof(Password)" placeholder="password" />
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private string? ErrorText { get; set; } = string.Empty;
+    
+    [SupplyParameterFromQuery] 
+    private string? ReturnUrl { get; set; }
+    
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+    
+    [SupplyParameterFromForm]
+    public string? Username { get; set; }
+    
+    [SupplyParameterFromForm]
+    public string? Password { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // This is GET request, so we just draw the page
+        if (!HttpMethods.IsPost(HttpContext.Request.Method)) return;
+        
+        
+        // This is POST request, so we handle the form values
+        
+        if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+        {
+            ErrorText = "Username and password is required";
+            return;
+        }
+        
+        var tokenData = await AuthenticationStateProvider.LoginAsync(Username, Password);
+        if (!tokenData.ok)
+        {
+            ErrorText = tokenData.message;
+            return;
+        }
+
+        HttpContextAccessor.HttpContext!.Response.Cookies.Append(CustomAuthStateProvider.CookieName, tokenData.message, new CookieOptions
+        {
+            HttpOnly = true,
+            Expires = DateTimeOffset.Now.AddMinutes(CustomAuthStateProvider.TokenExpirationTimeMin),
+        });
+
+        NavigationManager.NavigateTo(ReturnUrl ?? "/");
+    }
+}

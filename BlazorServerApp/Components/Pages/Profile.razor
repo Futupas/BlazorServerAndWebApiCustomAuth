@@ -1,0 +1,35 @@
+@page "/profile"
+
+@using System.Security.Claims
+@using BlazorServerApp.Auth
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IHttpContextAccessor HttpContextAccessor
+
+@attribute [CustomAuthorize]
+
+@inject CustomAuthStateProvider AuthStateProvider
+@* @inject NavigationManager Navigation *@
+
+@rendermode InteractiveServer
+
+<h1>Profile</h1>
+
+<p>Username: @username</p>
+<p>Role: @role</p>
+
+@* data-enhance-nav="false" is very important! *@
+<a href="/logout" data-enhance-nav="false">Logout</a>
+
+@code {
+    private string? username;
+    private string? role;
+
+    protected override void OnInitialized()
+    {
+        var state = AuthStateProvider.GetAuthenticationState();
+
+        username = state.User.Identity?.Name;
+        role = state.User.FindFirstValue(ClaimTypes.Role);
+    }
+}

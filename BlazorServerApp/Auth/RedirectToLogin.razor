@@ -1,0 +1,14 @@
+@inject NavigationManager Navigation
+
+@code {
+    [Parameter]
+    public string? ReturnUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var returnUrl = ReturnUrl ?? new Uri(Navigation.Uri).PathAndQuery;
+
+        Navigation.NavigateTo(
+            $"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+    }
+}

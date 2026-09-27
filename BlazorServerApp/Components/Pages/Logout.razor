@@ -1,0 +1,16 @@
+@page "/logout"
+@using BlazorServerApp.Auth
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+
+@code {
+    
+    [SupplyParameterFromQuery] 
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        HttpContextAccessor.HttpContext!.Response.Cookies.Delete(CustomAuthStateProvider.CookieName);
+        NavigationManager.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+    }
+}

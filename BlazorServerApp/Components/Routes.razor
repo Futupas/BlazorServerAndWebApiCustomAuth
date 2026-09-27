@@ -1,6 +1,37 @@
-﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-</Router>
+﻿@using BlazorServerApp.Auth
+
+@inject NavigationManager Navigation
+@inject CustomAuthStateProvider AuthStateProvider
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(Program).Assembly">
+        <Found Context="routeData">
+            @if (IsAuthorized(routeData))
+            {
+                <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            }
+            else
+            {
+                @* <p>401 Unauthorized</p> *@
+                <RedirectToLogin ReturnUrl="@(new Uri(Navigation.Uri).PathAndQuery)" />
+            }
+
+            <FocusOnNavigate RouteData="routeData"  Selector="h1" />
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+
+@code {
+
+    private bool IsAuthorized(RouteData routeData)
+    {
+        var attribute = routeData.PageType
+            .GetCustomAttributes(typeof(CustomAuthorizeAttribute), true)
+            .Cast<CustomAuthorizeAttribute>()
+            .FirstOrDefault();
+
+        if (attribute is null) return true;
+
+        return AuthStateProvider.IsInRole(attribute.Roles);
+    }
+}

@@ -1,0 +1,48 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject CustomAuthStateProvider AuthStateProvider
+
+@if (_authorized)
+{
+    @if (Authorized != null)
+    {
+        @Authorized(_user!)
+    }
+}
+else
+{
+    @NotAuthorized
+}
+
+@code {
+    [Parameter]
+    public string? Roles { get; set; }
+
+    [Parameter]
+    public RenderFragment<ClaimsPrincipal>? Authorized { get; set; }
+
+    [Parameter]
+    public RenderFragment? NotAuthorized { get; set; }
+
+    private ClaimsPrincipal? _user;
+    private bool _authorized;
+
+    protected override void OnInitialized()
+    {
+        var state = AuthStateProvider.GetAuthenticationState();
+        _user = state.User;
+
+        if (_user.Identity?.IsAuthenticated != true) return;
+
+        if (string.IsNullOrWhiteSpace(Roles))
+        {
+            _authorized = true;
+            return;
+        }
+
+        var roles = Roles
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        _authorized = roles.Any(_user.IsInRole);
+    }
+}
